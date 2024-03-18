@@ -284,3 +284,6 @@ if __name__ == "__main__":
     # Set the global variables
     exploration_probability = 1.0
     decay_factor = 0.999
+
+    # Call the main function
+    main(args.ip_range, args.remote_server, args.port, args.payload_url)
