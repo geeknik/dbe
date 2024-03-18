@@ -10,3 +10,5 @@ The script uses a Q-table to keep track of the expected rewards for each action 
 The script is written in Python and uses various libraries such as subprocess, threading, and numpy to perform its functions. It can be run from the command line with various options to customize its behavior.
 
 In simpler terms, the script is like a game where the agent learns to take actions in order to achieve a goal (in this case, infecting machines and spreading the infection). The agent uses a special kind of learning algorithm called Q-learning to figure out which actions are the best to take in each situation. The script also includes some safety measures to make sure the agent doesn't cause any harm to itself or others.
+
+This script is intended for educational and research purposes. You are responsible for your actions.
