@@ -192,7 +192,15 @@ def update_state(state: State, action: int) -> State:
         The next state.
     """
     # This function should be customized based on the specific problem being solved
-    pass
+    if action == 0:
+        state = State(state.ip, state.state_number + 1)
+    elif action == 1:
+        state = State(state.ip, state.state_number - 1)
+    elif action == 2:
+        state = State(state.ip, state.state_number * 2)
+    elif action == 3:
+        state = State(state.ip, state.state_number // 2)
+    return state
 
 def main(ip_range: List[str], remote_server: str, port: int, payload_url: str) -> None:
     # Initialize Q table and starting state
