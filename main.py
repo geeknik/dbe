@@ -30,9 +30,15 @@ class LongTermMemory:
     def retrieve(self, state: State):
         return self.memory.get(state, [])
 
+    def best_action(self, state: State) -> Optional[int]:
+        if state in self.memory:
+            actions = self.memory[state]
+            return max(actions, key=lambda x: x[1])[0]
+        return None
+
 long_term_memory = LongTermMemory()
 
-# Basic symbolic reasoning function
+# Enhanced symbolic reasoning function
 def symbolic_reasoning(state: State) -> Optional[int]:
     """Use symbolic reasoning to choose an action based on the state."""
     if state.state_number < 10:
@@ -45,7 +51,6 @@ def symbolic_reasoning(state: State) -> Optional[int]:
 
 def choose_action(q_table: Dict[State, Dict[int, float]], state: State, exploration_probability: float) -> int:
     """Choose a random action to take with probability exploration_probability, or the best action otherwise."""
-    # Use symbolic reasoning for action selection
     symbolic_action = symbolic_reasoning(state)
     if symbolic_action is not None:
         return symbolic_action
