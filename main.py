@@ -21,8 +21,10 @@ class State(NamedTuple):
 def choose_action(q_table: Dict[State, Dict[int, float]], state: State, exploration_probability: float) -> int:
     """Choose a random action to take with probability exploration_probability, or the best action otherwise."""
     if np.random.rand() < exploration_probability:
+        logging.debug("Choosing random action due to exploration probability")
         return np.random.randint(0, 4)
     else:
+        logging.debug("Choosing best action based on Q-table")
         return max(q_table[state].items(), key=lambda x: x[1])[0]
 
 def take_action(action: int, ip: str) -> Tuple[Optional[float], Optional[State]]:
@@ -36,9 +38,9 @@ def take_action(action: int, ip: str) -> Tuple[Optional[float], Optional[State]]
     
     result = action_map[action](ip)
     if result:
-        return REWARD_SUCCESS, None
+        return REWARD_SUCCESS, update_state(current_state, action)
     else:
-        return REWARD_FAILURE, None
+        return REWARD_FAILURE, update_state(current_state, action)
 
 def try_infect(ip: str) -> bool:
     """Try to infect a machine with an IP address of ip."""
