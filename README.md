@@ -6,13 +6,7 @@
 
 The script is designed to simulate a cybersecurity scenario in which an agent learns to perform various actions in order to infect machines, perform self-healing, and propagate to other machines. The agent uses an advanced Q-learning algorithm enhanced with curriculum learning, multi-task learning, memory augmentation, neuro-symbolic integration, and continuous learning to improve its decision-making capabilities.
 
-## Key Features
-
-- **Curriculum Learning:** The agent starts with simpler tasks and gradually increases the complexity of tasks.
-- **Multi-Task Learning:** The agent is trained on multiple related tasks (infecting, self-healing, propagating, and checking self-awareness) to improve generalization.
-- **Memory Augmentation:** A long-term memory system stores and retrieves relevant experiences to inform future actions.
-- **Neuro-Symbolic Integration:** Basic symbolic reasoning components enhance decision-making based on the current state.
-- **Continuous Learning and Adaptation:** The agent continuously learns and adapts to new data, updating its Q-table and long-term memory.
+In simpler terms, the script is like a game where the agent learns to take actions to achieve a goal (in this case, infecting machines and spreading the infection). The agent uses a special kind of learning algorithm called Q-learning, enhanced with several advanced techniques, to figure out which actions are the best to take in each situation.
 
 ## How It Works
 
@@ -37,10 +31,6 @@ python script.py <ip_range> --remote-server <remote_server> --port <port> --payl
 - **--remote-server:** The remote server to connect to (default: example.com).
 - **--port:** The port to connect to on the remote server (default: 8080).
 - **--payload-url:** The URL of the payload to download and execute.
-
-## Detailed Description
-
-In simpler terms, the script is like a game where the agent learns to take actions to achieve a goal (in this case, infecting machines and spreading the infection). The agent uses a special kind of learning algorithm called Q-learning, enhanced with several advanced techniques, to figure out which actions are the best to take in each situation.
 
 ### Advanced Techniques
 
