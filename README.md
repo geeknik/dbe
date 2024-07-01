@@ -49,6 +49,7 @@ In simpler terms, the script is like a game where the agent learns to take actio
 3. **Memory Augmentation:** The agent maintains a long-term memory of past experiences, which it uses to make more informed decisions.
 4. **Neuro-Symbolic Integration:** Incorporating symbolic reasoning helps the agent make decisions based on logical rules and current states.
 5. **Continuous Learning:** The agent continuously updates its knowledge base, adapting to new data and changing environments.
+6. **Environment Exploration**: The `explore_environment` function allows the agent to gather information about the current system.
 
 By integrating these advanced techniques, the script provides a robust framework for simulating and analyzing complex cybersecurity scenarios.
 
