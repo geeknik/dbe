@@ -1,15 +1,56 @@
-## dbe
+# dbe
+
 **Don't be evil.**
 
-The script is designed to simulate a cybersecurity scenario in which an agent learns to perform various actions in order to infect machines, perform self-healing, and propagate to other machines. The agent uses a Q-learning algorithm to learn which actions to take based on the current state of the environment.
+## Overview
 
-The script takes a list of IP addresses as input and scans them to see if they are vulnerable to a specific exploit. If a vulnerable machine is found, the agent tries to infect it by connecting to a remote server and executing a payload. The agent also performs periodic self-healing actions to ensure that it is running smoothly, and propagates to other machines in order to spread the infection.
+The script is designed to simulate a cybersecurity scenario in which an agent learns to perform various actions in order to infect machines, perform self-healing, and propagate to other machines. The agent uses an advanced Q-learning algorithm enhanced with curriculum learning, multi-task learning, memory augmentation, neuro-symbolic integration, and continuous learning to improve its decision-making capabilities.
 
-The script uses a Q-table to keep track of the expected rewards for each action in each state, and updates the Q-table based on the rewards received for each action taken. The agent also uses a decaying exploration probability to balance exploration and exploitation of the environment.
+## Key Features
 
-The script is written in Python and uses various libraries such as subprocess, threading, and numpy to perform its functions. It can be run from the command line with various options to customize its behavior.
+- **Curriculum Learning:** The agent starts with simpler tasks and gradually increases the complexity of tasks.
+- **Multi-Task Learning:** The agent is trained on multiple related tasks (infecting, self-healing, propagating, and checking self-awareness) to improve generalization.
+- **Memory Augmentation:** A long-term memory system stores and retrieves relevant experiences to inform future actions.
+- **Neuro-Symbolic Integration:** Basic symbolic reasoning components enhance decision-making based on the current state.
+- **Continuous Learning and Adaptation:** The agent continuously learns and adapts to new data, updating its Q-table and long-term memory.
 
-In simpler terms, the script is like a game where the agent learns to take actions in order to achieve a goal (in this case, infecting machines and spreading the infection). The agent uses a special kind of learning algorithm called Q-learning to figure out which actions are the best to take in each situation. The script also includes some safety measures to make sure the agent doesn't cause any harm to itself or others.
+## How It Works
+
+The script takes a list of IP addresses as input and scans them to see if they are vulnerable to a specific exploit. If a vulnerable machine is found, the agent tries to infect it by connecting to a remote server and executing a payload. The agent performs periodic self-healing actions to ensure smooth operation and propagates to other machines to spread the infection.
+
+The Q-learning algorithm uses a Q-table to keep track of the expected rewards for each action in each state and updates the Q-table based on the rewards received for each action taken. The agent balances exploration and exploitation of the environment using a decaying exploration probability.
+
+## Requirements
+
+- **Python 3.6+**
+- **Libraries:** subprocess, threading, numpy, psutil, urllib, concurrent.futures
+
+## Usage
+
+The script can be run from the command line with various options to customize its behavior:
+
+```sh
+python script.py <ip_range> --remote-server <remote_server> --port <port> --payload-url <payload_url>
+```
+
+- **ip_range:** A list of IP addresses to scan.
+- **--remote-server:** The remote server to connect to (default: example.com).
+- **--port:** The port to connect to on the remote server (default: 8080).
+- **--payload-url:** The URL of the payload to download and execute.
+
+## Detailed Description
+
+In simpler terms, the script is like a game where the agent learns to take actions to achieve a goal (in this case, infecting machines and spreading the infection). The agent uses a special kind of learning algorithm called Q-learning, enhanced with several advanced techniques, to figure out which actions are the best to take in each situation.
+
+### Advanced Techniques
+
+1. **Curriculum Learning:** The agent progresses from simpler to more complex tasks, allowing for gradual learning and adaptation.
+2. **Multi-Task Learning:** The agent is trained on various tasks simultaneously, improving its ability to generalize across different scenarios.
+3. **Memory Augmentation:** The agent maintains a long-term memory of past experiences, which it uses to make more informed decisions.
+4. **Neuro-Symbolic Integration:** Incorporating symbolic reasoning helps the agent make decisions based on logical rules and current states.
+5. **Continuous Learning:** The agent continuously updates its knowledge base, adapting to new data and changing environments.
+
+By integrating these advanced techniques, the script provides a robust framework for simulating and analyzing complex cybersecurity scenarios.
 
 # Disclaimer
 
