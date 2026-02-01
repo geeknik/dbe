@@ -1,0 +1,31 @@
+[MAIN]
+extension-pkg-whitelist=numpy,nmap
+
+[MESSAGES CONTROL]
+disable=
+    import-error,
+    logging-fstring-interpolation,
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-positional-arguments,
+    global-statement,
+    global-variable-not-assigned,
+    unused-argument,
+    no-else-return,
+    broad-exception-caught,
+    wrong-import-order,
+    wrong-import-position,
+    subprocess-run-check,
+    unspecified-encoding,
+    unused-variable,
+    unused-import
+
+[FORMAT]
+max-line-length=120
+
+[DESIGN]
+max-args=7
+max-attributes=10

